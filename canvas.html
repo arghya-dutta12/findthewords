@@ -150,6 +150,41 @@
         });
     }
            
+    canvas.addEventListener('touchstart', (event) => {
+        event.preventDefault();
+        isDragging = true;
+        draggedCells = [];
+        const touch = event.touches[0];
+        const cell = getCellFromMouseEvent(touch);
+        draggedCells.push(cell);
+        strikeoutDraggedCells();
+    });
+
+    canvas.addEventListener('touchmove', (event) => {
+        event.preventDefault();
+        if (isDragging) {
+            const touch = event.touches[0];
+            const cell = getCellFromMouseEvent(touch);
+            if (!draggedCells.some(c => c[0] === cell[0] && c[1] === cell[1])) {
+                draggedCells.push(cell);
+                strikeoutDraggedCells();
+            }
+        }
+    });
+
+    canvas.addEventListener('touchend', () => {
+        event.preventDefault();
+        isDragging = false;
+        const draggedWord = draggedCells.map(cell => {
+            const [x, y] = cell;
+            return filledLetters[y][x];
+        }).join('');
+        if (words.includes(draggedWord)) {
+            alert(`You found the word: ${draggedWord}`);
+        } else {
+            cleanDraggedCells();
+        }
+    });
 
         function getCellFromMouseEvent(event) {
             const rect = canvas.getBoundingClientRect();
