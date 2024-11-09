@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Grid</title>
+    <style>
+        canvas {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gridCanvas" width="500" height="500"></canvas>
+    <script>
+        const canvas = document.getElementById('gridCanvas');
+        const ctx = canvas.getContext('2d');
+        const gridSize = 50;
+        let isDragging = false;
+        let draggedCells = [];
+
+        function drawGrid() {
+            for (let x = 0; x <= canvas.width; x += gridSize) {
+                ctx.moveTo(x, 0);
+                ctx.lineTo(x, canvas.height);
+            }
+
+            for (let y = 0; y <= canvas.height; y += gridSize) {
+                ctx.moveTo(0, y);
+                ctx.lineTo(canvas.width, y);
+            }
+
+            ctx.strokeStyle = '#000';
+            ctx.stroke();
+        }
+
+        drawGrid();
+    </script>
+    
+<script>
+    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const words = ['APPLE', 'BANANA', 'CHERRY', 'DATE', 'FIG', 'GRAPE', 'LEMON', 'MANGO', 'ORANGE', 'PEACH', 'PLUM', 'KIWI', 'PAPAYA', 'LYCHEE', 'GUAVA', 'APRICOT', 'BERRY', 'MELON', 'PEAR'];
+    let wordIndex = 0;
+    let letterIndex = 0;
+    let filledLetters = [];
+
+    function getNextLetter() {
+        if (wordIndex >= words.length) {
+            wordIndex = 0;
+        }
+        const letter = words[wordIndex].charAt(letterIndex);
+        letterIndex++;
+        if (letterIndex >= words[wordIndex].length) {
+            letterIndex = 0;
+            wordIndex++;
+        }
+        return letter;
+    }
+
+    function getRandomWord() {
+        if (words.length === 0) return '';
+        const randomIndex = Math.floor(Math.random() * words.length);
+        return words[randomIndex];
+    }
+
+    function getRandomLetter() {
+        const randomIndex = Math.floor(Math.random() * letters.length);
+        return letters[randomIndex];
+    }
+
+    function canPlaceWordHorizontally(word, x, y, gridWidth, filledCells) {
+        if (x + word.length > gridWidth) return false;
+        for (let i = 0; i < word.length; i++) {
+            if (filledCells[x + i][y]) return false;
+        }
+        return true;
+    }
+
+    function canPlaceWordVertically(word, x, y, gridHeight, filledCells) {
+        if (y + word.length > gridHeight) return false;
+        for (let i = 0; i < word.length; i++) {
+            if (filledCells[x][y + i]) return false;
+        }
+        return true;
+    }
+
+    function fillGridWithLetters() {
+        ctx.font = '20px Arial';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const gridWidth = Math.floor(canvas.width / gridSize);
+        const gridHeight = Math.floor(canvas.height / gridSize);
+        const filledCells = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(false));
+         filledLetters = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(false));
+
+
+        for (let x = 0; x < gridWidth; x++) {
+            for (let y = 0; y < gridHeight; y++) {
+                if (!filledCells[x][y]) {
+                    const word = getRandomWord();
+                    const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+                    if (direction === 'horizontal' && canPlaceWordHorizontally(word, x, y, gridWidth, filledCells)) {
+                        for (let i = 0; i < word.length; i++) {
+                            const letter = word.charAt(i);
+                            const posX = (x + i) * gridSize + gridSize / 2;
+                            const posY = y * gridSize + gridSize / 2;
+                            ctx.fillText(letter, posX, posY);
+                            filledCells[x + i][y] = true;
+                            filledLetters[y][x + i] = letter;
+                        }
+                    } else if (direction === 'vertical' && canPlaceWordVertically(word, x, y, gridHeight, filledCells)) {
+                        for (let i = 0; i < word.length; i++) {
+                            const letter = word.charAt(i);
+                            const posX = x * gridSize + gridSize / 2;
+                            const posY = (y + i) * gridSize + gridSize / 2;
+                            ctx.fillText(letter, posX, posY);
+                            filledCells[x][y + i] = true;
+                            filledLetters[y + i][x] = letter;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Fill remaining empty spaces with random letters
+        for (let x = 0; x < gridWidth; x++) {
+            for (let y = 0; y < gridHeight; y++) {
+                if (!filledCells[x][y]) {
+                    const letter = getRandomLetter();
+                    const posX = x * gridSize + gridSize / 2;
+                    const posY = y * gridSize + gridSize / 2;
+                    ctx.fillText(letter, posX, posY);
+                    filledLetters[y][x] = letter;
+                }
+            }
+        }
+    }
+
+    function strikeoutDraggedCells() {        
+        draggedCells.forEach(cell => {
+            const [x, y] = cell;
+            ctx.strokeStyle = 'red';
+            ctx.beginPath();
+            ctx.moveTo(x * gridSize, y * gridSize);
+            ctx.lineTo((x + 1) * gridSize, (y + 1) * gridSize);
+            ctx.moveTo((x + 1) * gridSize, y * gridSize);
+            ctx.lineTo(x * gridSize, (y + 1) * gridSize);
+            ctx.stroke();
+        });
+    }
+           
+
+        function getCellFromMouseEvent(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = Math.floor((event.clientX - rect.left) / gridSize);
+            const y = Math.floor((event.clientY - rect.top) / gridSize);
+            return [x, y];
+        }
+
+        function cleanDraggedCells() {
+                draggedCells.forEach(cell => {
+                    const [x, y] = cell;
+                    ctx.clearRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                    ctx.fillText(filledLetters[y][x], x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
+                    ctx.strokeStyle = 'black';
+                    ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                });
+                draggedCells = [];
+            }
+
+        canvas.addEventListener('mousedown', (event) => {
+            isDragging = true;
+            draggedCells = [];
+            const cell = getCellFromMouseEvent(event);
+            draggedCells.push(cell);
+            strikeoutDraggedCells();
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (isDragging) {
+                const cell = getCellFromMouseEvent(event);
+                if (!draggedCells.some(c => c[0] === cell[0] && c[1] === cell[1])) {
+                    draggedCells.push(cell);
+                    strikeoutDraggedCells();
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            isDragging = false;
+            const draggedWord = draggedCells.map(cell => {
+                const [x, y] = cell;
+              //  console.log(x, y);
+                //console.log(filledLetters[y][x]);
+                return filledLetters[y][x];
+            }).join('');
+            //console.log(draggedWord);
+            if (words.includes(draggedWord)) {
+                alert(`You found the word: ${draggedWord}`);
+            } else{
+                cleanDraggedCells();
+            
+            }
+        });
+
+    fillGridWithLetters();
+</script>
+
+</body>
+</html>
