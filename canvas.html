@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
         }
     </style>
 </head>
+
 <body>
     <canvas id="gridCanvas" width="500" height="500"></canvas>
     <script>
@@ -36,109 +38,109 @@
 
         drawGrid();
     </script>
-    
-<script>
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const words = ['APPLE', 'BANANA', 'CHERRY', 'DATE', 'FIG', 'GRAPE', 'LEMON', 'MANGO', 'ORANGE', 'PEACH', 'PLUM', 'KIWI', 'PAPAYA', 'LYCHEE', 'GUAVA', 'APRICOT', 'BERRY', 'MELON', 'PEAR'];
-    let wordIndex = 0;
-    let letterIndex = 0;
-    let filledLetters = [];
 
-    function getNextLetter() {
-        if (wordIndex >= words.length) {
-            wordIndex = 0;
+    <script>
+        const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        const words = ['APPLE', 'BANANA', 'CHERRY', 'DATE', 'FIG', 'GRAPE', 'LEMON', 'MANGO', 'ORANGE', 'PEACH', 'PLUM', 'KIWI', 'PAPAYA', 'LYCHEE', 'GUAVA', 'APRICOT', 'BERRY', 'MELON', 'PEAR'];
+        let wordIndex = 0;
+        let letterIndex = 0;
+        let filledLetters = [];
+
+        function getNextLetter() {
+            if (wordIndex >= words.length) {
+                wordIndex = 0;
+            }
+            const letter = words[wordIndex].charAt(letterIndex);
+            letterIndex++;
+            if (letterIndex >= words[wordIndex].length) {
+                letterIndex = 0;
+                wordIndex++;
+            }
+            return letter;
         }
-        const letter = words[wordIndex].charAt(letterIndex);
-        letterIndex++;
-        if (letterIndex >= words[wordIndex].length) {
-            letterIndex = 0;
-            wordIndex++;
+
+        function getRandomWord() {
+            if (words.length === 0) return '';
+            const randomIndex = Math.floor(Math.random() * words.length);
+            return words[randomIndex];
         }
-        return letter;
-    }
 
-    function getRandomWord() {
-        if (words.length === 0) return '';
-        const randomIndex = Math.floor(Math.random() * words.length);
-        return words[randomIndex];
-    }
-
-    function getRandomLetter() {
-        const randomIndex = Math.floor(Math.random() * letters.length);
-        return letters[randomIndex];
-    }
-
-    function canPlaceWordHorizontally(word, x, y, gridWidth, filledCells) {
-        if (x + word.length > gridWidth) return false;
-        for (let i = 0; i < word.length; i++) {
-            if (filledCells[x + i][y]) return false;
+        function getRandomLetter() {
+            const randomIndex = Math.floor(Math.random() * letters.length);
+            return letters[randomIndex];
         }
-        return true;
-    }
 
-    function canPlaceWordVertically(word, x, y, gridHeight, filledCells) {
-        if (y + word.length > gridHeight) return false;
-        for (let i = 0; i < word.length; i++) {
-            if (filledCells[x][y + i]) return false;
+        function canPlaceWordHorizontally(word, x, y, gridWidth, filledCells) {
+            if (x + word.length > gridWidth) return false;
+            for (let i = 0; i < word.length; i++) {
+                if (filledCells[x + i][y]) return false;
+            }
+            return true;
         }
-        return true;
-    }
 
-    function fillGridWithLetters() {
-        ctx.font = '20px Arial';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
+        function canPlaceWordVertically(word, x, y, gridHeight, filledCells) {
+            if (y + word.length > gridHeight) return false;
+            for (let i = 0; i < word.length; i++) {
+                if (filledCells[x][y + i]) return false;
+            }
+            return true;
+        }
 
-        const gridWidth = Math.floor(canvas.width / gridSize);
-        const gridHeight = Math.floor(canvas.height / gridSize);
-        const filledCells = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(false));
-         filledLetters = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(false));
+        function fillGridWithLetters() {
+            ctx.font = '20px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            const gridWidth = Math.floor(canvas.width / gridSize);
+            const gridHeight = Math.floor(canvas.height / gridSize);
+            const filledCells = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(false));
+            filledLetters = Array.from({ length: gridWidth }, () => Array(gridHeight).fill(false));
 
 
-        for (let x = 0; x < gridWidth; x++) {
-            for (let y = 0; y < gridHeight; y++) {
-                if (!filledCells[x][y]) {
-                    const word = getRandomWord();
-                    const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
-                    if (direction === 'horizontal' && canPlaceWordHorizontally(word, x, y, gridWidth, filledCells)) {
-                        for (let i = 0; i < word.length; i++) {
-                            const letter = word.charAt(i);
-                            const posX = (x + i) * gridSize + gridSize / 2;
-                            const posY = y * gridSize + gridSize / 2;
-                            ctx.fillText(letter, posX, posY);
-                            filledCells[x + i][y] = true;
-                            filledLetters[y][x + i] = letter;
+            for (let x = 0; x < gridWidth; x++) {
+                for (let y = 0; y < gridHeight; y++) {
+                    if (!filledCells[x][y]) {
+                        const word = getRandomWord();
+                        const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
+                        if (direction === 'horizontal' && canPlaceWordHorizontally(word, x, y, gridWidth, filledCells)) {
+                            for (let i = 0; i < word.length; i++) {
+                                const letter = word.charAt(i);
+                                const posX = (x + i) * gridSize + gridSize / 2;
+                                const posY = y * gridSize + gridSize / 2;
+                                ctx.fillText(letter, posX, posY);
+                                filledCells[x + i][y] = true;
+                                filledLetters[y][x + i] = letter;
+                            }
+                        } else if (direction === 'vertical' && canPlaceWordVertically(word, x, y, gridHeight, filledCells)) {
+                            for (let i = 0; i < word.length; i++) {
+                                const letter = word.charAt(i);
+                                const posX = x * gridSize + gridSize / 2;
+                                const posY = (y + i) * gridSize + gridSize / 2;
+                                ctx.fillText(letter, posX, posY);
+                                filledCells[x][y + i] = true;
+                                filledLetters[y + i][x] = letter;
+                            }
                         }
-                    } else if (direction === 'vertical' && canPlaceWordVertically(word, x, y, gridHeight, filledCells)) {
-                        for (let i = 0; i < word.length; i++) {
-                            const letter = word.charAt(i);
-                            const posX = x * gridSize + gridSize / 2;
-                            const posY = (y + i) * gridSize + gridSize / 2;
-                            ctx.fillText(letter, posX, posY);
-                            filledCells[x][y + i] = true;
-                            filledLetters[y + i][x] = letter;
-                        }
+                    }
+                }
+            }
+
+            // Fill remaining empty spaces with random letters
+            for (let x = 0; x < gridWidth; x++) {
+                for (let y = 0; y < gridHeight; y++) {
+                    if (!filledCells[x][y]) {
+                        const letter = getRandomLetter();
+                        const posX = x * gridSize + gridSize / 2;
+                        const posY = y * gridSize + gridSize / 2;
+                        ctx.fillText(letter, posX, posY);
+                        filledLetters[y][x] = letter;
                     }
                 }
             }
         }
 
-        // Fill remaining empty spaces with random letters
-        for (let x = 0; x < gridWidth; x++) {
-            for (let y = 0; y < gridHeight; y++) {
-                if (!filledCells[x][y]) {
-                    const letter = getRandomLetter();
-                    const posX = x * gridSize + gridSize / 2;
-                    const posY = y * gridSize + gridSize / 2;
-                    ctx.fillText(letter, posX, posY);
-                    filledLetters[y][x] = letter;
-                }
-            }
-        }
-    }
-
-    function strikeoutDraggedCells() {        
-        draggedCells.forEach(cell => {
+        function strikeoutDraggedCells() {
+            draggedCells.forEach(cell => {
             const [x, y] = cell;
             ctx.strokeStyle = 'red';
             ctx.beginPath();
@@ -147,100 +149,140 @@
             ctx.moveTo((x + 1) * gridSize, y * gridSize);
             ctx.lineTo(x * gridSize, (y + 1) * gridSize);
             ctx.stroke();
-        });
-    }
-           
-    canvas.addEventListener('touchstart', (event) => {
-        event.preventDefault();
-        isDragging = true;
-        draggedCells = [];
-        const touch = event.touches[0];
-        const cell = getCellFromMouseEvent(touch);
-        draggedCells.push(cell);
-        strikeoutDraggedCells();
-    });
+            });
 
-    canvas.addEventListener('touchmove', (event) => {
-        event.preventDefault();
-        if (isDragging) {
-            const touch = event.touches[0];
-            const cell = getCellFromMouseEvent(touch);
-            if (!draggedCells.some(c => c[0] === cell[0] && c[1] === cell[1])) {
-                draggedCells.push(cell);
-                strikeoutDraggedCells();
+            setTimeout(() => {
+            draggedCells.forEach(cell => {
+                const [x, y] = cell;
+                ctx.clearRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                ctx.fillText(filledLetters[y][x], x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
+                ctx.strokeStyle = 'black';
+                ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
+            });
+            }, 500);
+        }
+            
+        
+
+        function handleEnd(event) {
+            event.preventDefault();
+            isDragging = false;
+            const draggedWord = draggedCells.map(cell => {
+                const [x, y] = cell;
+                return filledLetters[y][x];
+            }).join('');
+            if (words.includes(draggedWord)) {
+                alert(`You found the word: ${draggedWord}`);
+            } else {
+                cleanDraggedCells();
             }
         }
-    });
-
-    canvas.addEventListener('touchend', () => {
-        event.preventDefault();
-        isDragging = false;
-        const draggedWord = draggedCells.map(cell => {
-            const [x, y] = cell;
-            return filledLetters[y][x];
-        }).join('');
-        if (words.includes(draggedWord)) {
-            alert(`You found the word: ${draggedWord}`);
-        } else {
-            cleanDraggedCells();
-        }
-    });
 
         function getCellFromMouseEvent(event) {
             const rect = canvas.getBoundingClientRect();
+            console.log(event.clientX,event.clientY );
             const x = Math.floor((event.clientX - rect.left) / gridSize);
             const y = Math.floor((event.clientY - rect.top) / gridSize);
+            console.log( [x, y]);
             return [x, y];
         }
 
         function cleanDraggedCells() {
-                draggedCells.forEach(cell => {
-                    const [x, y] = cell;
-                    ctx.clearRect(x * gridSize, y * gridSize, gridSize, gridSize);
-                    ctx.fillText(filledLetters[y][x], x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
-                    ctx.strokeStyle = 'black';
-                    ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
-                });
-                draggedCells = [];
-            }
-
-        canvas.addEventListener('mousedown', (event) => {
-            isDragging = true;
+            draggedCells.forEach(cell => {
+                const [x, y] = cell;
+                ctx.clearRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                ctx.fillText(filledLetters[y][x], x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
+                ctx.strokeStyle = 'black';
+                ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
+            });
             draggedCells = [];
-            const cell = getCellFromMouseEvent(event);
-            draggedCells.push(cell);
-            strikeoutDraggedCells();
-        });
+        }
 
-        canvas.addEventListener('mousemove', (event) => {
+        function isOutOfBounds(cell) {
+            if (cell[0] < 0 || cell[0] >= Math.floor(canvas.width / gridSize) || cell[1] < 0 || cell[1] >= Math.floor(canvas.height / gridSize)) {
+                return true
+            } else {             
+                return false
+            }
+        }
+
+        function handleDrag(cell) {
             if (isDragging) {
-                const cell = getCellFromMouseEvent(event);
                 if (!draggedCells.some(c => c[0] === cell[0] && c[1] === cell[1])) {
                     draggedCells.push(cell);
                     strikeoutDraggedCells();
                 }
             }
-        });
+        }
 
-        canvas.addEventListener('mouseup', () => {
-            isDragging = false;
-            const draggedWord = draggedCells.map(cell => {
-                const [x, y] = cell;
-              //  console.log(x, y);
-                //console.log(filledLetters[y][x]);
-                return filledLetters[y][x];
-            }).join('');
-            //console.log(draggedWord);
-            if (words.includes(draggedWord)) {
-                alert(`You found the word: ${draggedWord}`);
-            } else{
-                cleanDraggedCells();
-            
+
+        canvas.addEventListener('touchstart', (event) => {
+            event.preventDefault();
+            const cell = getCellFromMouseEvent(touch);
+            if (!isOutOfBounds(cell)) {
+                isDragging = true;
+                draggedCells = [];
+                const touch = event.touches[0];               
+                draggedCells.push(cell);
+                strikeoutDraggedCells();
             }
         });
 
-    fillGridWithLetters();
-</script>
+        canvas.addEventListener('touchmove', (event) => {
+            if (isDragging) {
+                event.preventDefault();
+                const touch = event.touches[0];
+                const cell = getCellFromMouseEvent(event);
+                if (isOutOfBounds(cell)) {
+                    canvas.dispatchEvent(new Event('touchend'));
+                } else {
+                    handleDrag(cell);
+                }
+            }
+        });
+
+        canvas.addEventListener('touchend', () => {
+            handleEnd(event);
+        });
+
+        canvas.addEventListener('mousedown', (event) => {
+            const cell = getCellFromMouseEvent(event);
+
+            if (!isOutOfBounds(cell)) {
+                isDragging = true;
+                draggedCells = [];
+                draggedCells.push(cell);
+                strikeoutDraggedCells();
+            }
+        });
+
+        canvas.addEventListener('mousemove', (event) => {
+            if (isDragging) {
+                event.preventDefault();
+                const cell = getCellFromMouseEvent(event);
+                if (isOutOfBounds(cell)) {
+                    canvas.dispatchEvent(new Event('mouseup'));
+                } else {
+                    handleDrag(cell);
+                }
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            handleEnd(event);
+        });
+
+        canvas.addEventListener('mouseleave', (event) => {
+            if (isDragging) {
+                canvas.dispatchEvent(new Event('mouseup'));
+            }
+        });
+
+        fillGridWithLetters();
+
+
+    </script>
 
 </body>
+
 </html>
