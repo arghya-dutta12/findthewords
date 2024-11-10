@@ -36,15 +36,51 @@
             ctx.stroke();
         }
 
+        const scoreBoard = document.createElement('div');
+        scoreBoard.id = 'scoreBoard';
+        scoreBoard.style.marginTop = '10px';
+        scoreBoard.innerHTML = 'Remaining words: 0';
+        document.body.insertBefore(scoreBoard, canvas.nextSibling);
+
+        let score = 0;
+
+        function updateScore(points) {
+            score += points;
+            scoreBoard.innerHTML = `Remaining words: ${score}`;
+        }
+
+        const timer = document.createElement('div');
+        timer.id = 'timer';
+        timer.style.marginTop = '10px';
+        timer.innerHTML = 'Time Elapsed: 0s';
+        document.body.insertBefore(timer, canvas.nextSibling);
+
+        let startTime = Date.now();
+
+        function updateTimer() {
+            const elapsedTime = Math.floor((Date.now() - startTime) / 1000);
+            timer.innerHTML = `Time Elapsed: ${elapsedTime}s`;
+        }
+
+        setInterval(updateTimer, 1000);
+
         drawGrid();
     </script>
 
     <script>
         const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        const words = ['APPLE', 'BANANA', 'CHERRY', 'DATE', 'FIG', 'GRAPE', 'LEMON', 'MANGO', 'ORANGE', 'PEACH', 'PLUM', 'KIWI', 'PAPAYA', 'LYCHEE', 'GUAVA', 'APRICOT', 'BERRY', 'MELON', 'PEAR'];
+        const words = [
+            'APPLE', 'BANANA', 'CHERRY', 'DATE', 'FIG', 'GRAPE', 'LEMON', 'MANGO', 'ORANGE', 'PEACH',
+            'PLUM', 'KIWI', 'PAPAYA', 'LYCHEE', 'GUAVA', 'APRICOT', 'BERRY', 'MELON', 'PEAR', 'LIME',
+            'OLIVE', 'QUINCE', 'RAISIN', 'TOMATO', 'UGLI', 'YUZU', 'ACAI', 'CURRANT', 'DAMSON', 'ELDER',
+            'GOOSE', 'HUCKLE', 'JUNIPER', 'KUMQUAT', 'LOQUAT', 'MIRABEL', 'NECTAR', 'POMELO', 'RAMBUT',
+            'SALAK', 'TAMARIL', 'DORIAN', 'WALNUT', 'XIGUA', 'YAM', 'PALM', 'BILBERR', 'CITRON'
+        ];
         let wordIndex = 0;
         let letterIndex = 0;
         let filledLetters = [];
+        let selectedWords = [];
+        let hardstop = false;
 
         function getNextLetter() {
             if (wordIndex >= words.length) {
@@ -62,6 +98,9 @@
         function getRandomWord() {
             if (words.length === 0) return '';
             const randomIndex = Math.floor(Math.random() * words.length);
+            if (selectedWords.includes(words[randomIndex])) {
+                return getRandomWord();
+            }
             return words[randomIndex];
         }
 
@@ -103,6 +142,7 @@
                         const word = getRandomWord();
                         const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
                         if (direction === 'horizontal' && canPlaceWordHorizontally(word, x, y, gridWidth, filledCells)) {
+                            selectedWords.push(word);
                             for (let i = 0; i < word.length; i++) {
                                 const letter = word.charAt(i);
                                 const posX = (x + i) * gridSize + gridSize / 2;
@@ -112,6 +152,7 @@
                                 filledLetters[y][x + i] = letter;
                             }
                         } else if (direction === 'vertical' && canPlaceWordVertically(word, x, y, gridHeight, filledCells)) {
+                            selectedWords.push(word);
                             for (let i = 0; i < word.length; i++) {
                                 const letter = word.charAt(i);
                                 const posX = x * gridSize + gridSize / 2;
@@ -137,32 +178,33 @@
                     }
                 }
             }
+            updateScore(selectedWords.length);
         }
 
         function strikeoutDraggedCells() {
             draggedCells.forEach(cell => {
-            const [x, y] = cell;
-            ctx.strokeStyle = 'red';
-            ctx.beginPath();
-            ctx.moveTo(x * gridSize, y * gridSize);
-            ctx.lineTo((x + 1) * gridSize, (y + 1) * gridSize);
-            ctx.moveTo((x + 1) * gridSize, y * gridSize);
-            ctx.lineTo(x * gridSize, (y + 1) * gridSize);
-            ctx.stroke();
+                const [x, y] = cell;
+                ctx.strokeStyle = 'red';
+                ctx.beginPath();
+                ctx.moveTo(x * gridSize, y * gridSize);
+                ctx.lineTo((x + 1) * gridSize, (y + 1) * gridSize);
+                ctx.moveTo((x + 1) * gridSize, y * gridSize);
+                ctx.lineTo(x * gridSize, (y + 1) * gridSize);
+                ctx.stroke();
             });
 
             setTimeout(() => {
-            draggedCells.forEach(cell => {
-                const [x, y] = cell;
-                ctx.clearRect(x * gridSize, y * gridSize, gridSize, gridSize);
-                ctx.fillText(filledLetters[y][x], x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
-                ctx.strokeStyle = 'black';
-                ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
-            });
+                draggedCells.forEach(cell => {
+                    const [x, y] = cell;
+                    ctx.clearRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                    ctx.fillText(filledLetters[y][x], x * gridSize + gridSize / 2, y * gridSize + gridSize / 2);
+                    ctx.strokeStyle = 'black';
+                    ctx.strokeRect(x * gridSize, y * gridSize, gridSize, gridSize);
+                });
             }, 500);
         }
-            
-        
+
+
 
         function handleEnd(event) {
             event.preventDefault();
@@ -171,17 +213,24 @@
                 const [x, y] = cell;
                 return filledLetters[y][x];
             }).join('');
-            if (words.includes(draggedWord)) {
-                alert(`You found the word: ${draggedWord}`);
+            if (selectedWords.includes(draggedWord)) {
+                //alert(`You found the word: ${draggedWord}`);
+                selectedWords = selectedWords.filter(word => word !== draggedWord);
+                updateScore(-1);
+                if (selectedWords.length === 0) {
+                    document.getElementById('scoreBoard').innerHTML = 'Congratulations! You found all the words!';
+                    clearInterval(updateTimer);                    
+                    hardstop = true
+                }
             } else {
                 cleanDraggedCells();
             }
         }
 
         function getCellFromMouseEvent(event) {
-            const rect = canvas.getBoundingClientRect();         
+            const rect = canvas.getBoundingClientRect();
             const x = Math.floor((event.clientX - rect.left) / gridSize);
-            const y = Math.floor((event.clientY - rect.top) / gridSize);         
+            const y = Math.floor((event.clientY - rect.top) / gridSize);
             return [x, y];
         }
 
@@ -199,7 +248,7 @@
         function isOutOfBounds(cell) {
             if (cell[0] < 0 || cell[0] >= Math.floor(canvas.width / gridSize) || cell[1] < 0 || cell[1] >= Math.floor(canvas.height / gridSize)) {
                 return true
-            } else {             
+            } else {
                 return false
             }
         }
@@ -220,7 +269,7 @@
             const cell = getCellFromMouseEvent(touch);
             if (!isOutOfBounds(cell)) {
                 isDragging = true;
-                draggedCells = [];               
+                draggedCells = [];
                 draggedCells.push(cell);
                 strikeoutDraggedCells();
             }
