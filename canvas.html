@@ -179,11 +179,9 @@
         }
 
         function getCellFromMouseEvent(event) {
-            const rect = canvas.getBoundingClientRect();
-            console.log(event.clientX,event.clientY );
+            const rect = canvas.getBoundingClientRect();         
             const x = Math.floor((event.clientX - rect.left) / gridSize);
-            const y = Math.floor((event.clientY - rect.top) / gridSize);
-            console.log( [x, y]);
+            const y = Math.floor((event.clientY - rect.top) / gridSize);         
             return [x, y];
         }
 
@@ -218,11 +216,11 @@
 
         canvas.addEventListener('touchstart', (event) => {
             event.preventDefault();
+            const touch = event.touches[0];
             const cell = getCellFromMouseEvent(touch);
             if (!isOutOfBounds(cell)) {
                 isDragging = true;
-                draggedCells = [];
-                const touch = event.touches[0];               
+                draggedCells = [];               
                 draggedCells.push(cell);
                 strikeoutDraggedCells();
             }
@@ -232,7 +230,7 @@
             if (isDragging) {
                 event.preventDefault();
                 const touch = event.touches[0];
-                const cell = getCellFromMouseEvent(event);
+                const cell = getCellFromMouseEvent(touch);
                 if (isOutOfBounds(cell)) {
                     canvas.dispatchEvent(new Event('touchend'));
                 } else {
